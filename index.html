@@ -166,17 +166,25 @@
           <div class="bHole"></div>
           <div
             class="charger"
-            onclick="document.body.style.opacity=0;
-                        setTimeout(function() {
-                            window.scrollTo(0,containerScrollWidth);
-                            setTimeout(function() {
-                                document.body.style.opacity=1
-                            }, 200);
-                            }, 200);"
+            onclick="
+              document.body.style.opacity = 0;
+              setTimeout(function () {
+                window.scrollTo(0, containerScrollWidth);
+                setTimeout(function () {
+                  document.body.style.opacity = 1;
+                }, 200);
+              }, 200);
+            "
           ></div>
           <div
             class="cpu"
-            onclick="document.querySelector('.cpu img').style.animation='jump .5s ease-in-out';setTimeout(function() {document.querySelector('.cpu img').style.animation=''}, 500);"
+            onclick="
+              document.querySelector('.cpu img').style.animation =
+                'jump .5s ease-in-out';
+              setTimeout(function () {
+                document.querySelector('.cpu img').style.animation = '';
+              }, 500);
+            "
           >
             <img src="/src/img/logo.svg" alt="" />
           </div>
@@ -567,9 +575,7 @@
                 <div class="creditsLabel">
                   <i
                     class="fa-regular fa-circle-up"
-                    onclick=" window.scrollTo({top: 0,
-                                            behavior: 'smooth'
-                                        });"
+                    onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
                   ></i>
                   <label for="credits">
                     <i class="fa-regular fa-copyright"></i
