@@ -19,6 +19,10 @@ body {
   scroll-behavior: smooth;
 }
 
+body.no-select {
+  user-select: none;
+}
+
 header h1 {
   font-size: 1.75rem;
   font-weight: 600;
@@ -743,12 +747,69 @@ article li {
   scroll-behavior: smooth;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  cursor: grab;
+}
+
+.sdBox.is-dragging {
+  cursor: grabbing;
 }
 
 .sdBox::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
+}
+
+.sdSwipeHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.9rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  user-select: none;
+  font-family: 'NicoMoji', 'jfOpenHuninn', sans-serif;
+}
+
+.sdSwipeHint .hint-arrow {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.sdSwipeHint .hint-arrow.left {
+  animation: swipeHintLeft 1.3s ease-in-out infinite;
+}
+
+.sdSwipeHint .hint-arrow.right {
+  animation: swipeHintRight 1.3s ease-in-out infinite;
+}
+
+@keyframes swipeHintLeft {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-0.35rem);
+    opacity: 1;
+  }
+}
+
+@keyframes swipeHintRight {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(0.35rem);
+    opacity: 1;
+  }
 }
 
 .sdCard {
@@ -1075,6 +1136,11 @@ article li {
 
   .sdBox {
     margin-block: 1.5rem;
+  }
+  .sdSwipeHint {
+    margin-top: -0.9rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.78rem;
   }
   .imgLcd {
     aspect-ratio: 812 / 408;
@@ -1755,6 +1821,16 @@ article li {
     padding: 2dvh;
     gap: 2dvh;
     border-radius: 2dvh;
+  }
+
+  .sdSwipeHint {
+    position: absolute;
+    left: calc(388dvh / var(--h));
+    top: calc(76dvh / var(--h));
+    width: calc(812dvh / var(--h));
+    margin: 0;
+    font-size: calc(13dvh / var(--h));
+    z-index: 2;
   }
 
   .sdCard {

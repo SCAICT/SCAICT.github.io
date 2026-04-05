@@ -241,6 +241,95 @@ const fetchPromises = [
 
 const sd = document.querySelector('.sd');
 const imgContainer = document.getElementById('showImg-container');
+const setupSdBoxInteractions = () => {
+  const sdBox = document.querySelector('.sdBox');
+  if (!sdBox) return;
+
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+  let suppressClick = false;
+  const dragThreshold = 6;
+  const isPointerInsideSdBox = event => {
+    const rect = sdBox.getBoundingClientRect();
+    return (
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom
+    );
+  };
+
+  sdBox.addEventListener(
+    'wheel',
+    event => {
+      if (sdBox.scrollWidth <= sdBox.clientWidth) return;
+      if (!isPointerInsideSdBox(event)) return;
+
+      const delta =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.deltaY;
+      if (delta === 0) return;
+
+      const maxScrollLeft = sdBox.scrollWidth - sdBox.clientWidth;
+      const atLeftEdge = sdBox.scrollLeft <= 1;
+      const atRightEdge = sdBox.scrollLeft >= maxScrollLeft - 1;
+      if ((delta < 0 && atLeftEdge) || (delta > 0 && atRightEdge)) return;
+
+      const targetScrollLeft = Math.max(
+        0,
+        Math.min(maxScrollLeft, sdBox.scrollLeft + delta),
+      );
+
+      if (targetScrollLeft === sdBox.scrollLeft) return;
+      sdBox.scrollLeft = targetScrollLeft;
+      event.preventDefault();
+    },
+    { passive: false },
+  );
+
+  sdBox.addEventListener('mousedown', event => {
+    if (event.button !== 0) return;
+    dragging = true;
+    suppressClick = false;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = sdBox.scrollLeft;
+    sdBox.classList.add('is-dragging');
+    document.body.classList.add('no-select');
+    event.preventDefault();
+  });
+
+  window.addEventListener('mousemove', event => {
+    if (!dragging) return;
+    const dragOffset = event.clientX - dragStartX;
+    if (Math.abs(dragOffset) > dragThreshold) suppressClick = true;
+    sdBox.scrollLeft = dragStartScrollLeft - dragOffset;
+  });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    sdBox.classList.remove('is-dragging');
+    document.body.classList.remove('no-select');
+  };
+
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('blur', endDrag);
+
+  sdBox.addEventListener(
+    'click',
+    event => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    true,
+  );
+};
+setupSdBoxInteractions();
+
 const showImg = event => {
   if (pressed)
     document.querySelector('.selected-sd').classList.remove('selected-sd');
