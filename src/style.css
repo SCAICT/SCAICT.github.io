@@ -579,32 +579,58 @@ footer {
 }
 
 .events article {
+  --event-accent: #19a0da;
+  --event-accent-glow: rgba(25, 160, 218, 0.32);
+  --event-border-width: 0.24rem;
+  --event-radius: 1rem;
   position: relative;
-  transition: background-position 350ms ease;
-  border: 5px solid #19a0da;
+  border: var(--event-border-width) solid var(--event-accent);
+  border-radius: var(--event-radius);
+  overflow: hidden;
+  box-shadow:
+    0 0 1.15rem var(--event-accent-glow),
+    0 1rem 1.8rem rgba(0, 0, 0, 0.36);
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease;
   cursor: pointer;
 }
+.events article:hover {
+  box-shadow:
+    0 0 1.75rem var(--event-accent-glow),
+    0 1.3rem 2.1rem rgba(0, 0, 0, 0.44);
+}
 .events article::after {
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.3) 3%,
-    transparent 8%
-  );
-  background-position: 1dvh, 1dvh;
-  background-size: 4dvh 4dvh;
-  width: 100%;
-  height: 100%;
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 4;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      160deg,
+      var(--event-accent-glow) 0%,
+      rgba(255, 255, 255, 0.08) 42%,
+      rgba(0, 0, 0, 0.26) 100%
+    ),
+    radial-gradient(rgba(255, 255, 255, 0.24) 3%, transparent 9%);
+  background-size:
+    100% 100%,
+    4dvh 4dvh;
+  background-position:
+    center,
+    0 0;
+  z-index: 3;
   pointer-events: none;
-  transition: background-position 350ms ease;
+  opacity: 0.62;
+  transition:
+    opacity 220ms ease,
+    background-position 320ms ease;
 }
 .events article:hover::after {
+  opacity: 0.8;
   background-position:
-    -3dvh,
-    -3dvh;
+    center,
+    2dvh 0;
 }
 .events article:hover > img + div {
   backdrop-filter: unset;
@@ -875,6 +901,7 @@ article li {
   :root {
     --square: min(100vw - 2rem, 100vh - 12rem);
     --button-w: max(calc(var(--square) / 15), 1.5rem);
+    --mobile-section-gap: clamp(4rem, 12vw, 6rem);
   }
 
   .lcd {
@@ -970,6 +997,15 @@ article li {
     margin: auto;
     margin-top: 50svh;
   }
+  #About .container {
+    padding-bottom: calc(var(--mobile-section-gap) * 0.85);
+  }
+  #About .container > * + * {
+    margin-top: var(--mobile-section-gap);
+  }
+  #About .container > section {
+    padding-top: 0.4rem;
+  }
 
   #About h2 {
     font-size: 2.5rem;
@@ -992,11 +1028,17 @@ article li {
     background-size: 200%;
   }
 
+  #Events .events {
+    margin-top: calc(var(--mobile-section-gap) * 0.55);
+  }
+  #Events .events article:first-child {
+    margin-top: 0;
+  }
   .events article h4 + div {
     margin-bottom: 3rem;
   }
   .events article {
-    margin-top: 2rem;
+    margin-top: 2.4rem;
   }
 
   .tree img:last-child {
@@ -1032,7 +1074,7 @@ article li {
   }
 
   .sdBox {
-    margin-block: 1rem;
+    margin-block: 1.5rem;
   }
   .imgLcd {
     aspect-ratio: 812 / 408;
@@ -1083,7 +1125,7 @@ article li {
   }
   .event-mobile {
     position: relative;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
   }
   .imgButton {
     height: calc(var(--square) / 366 * 119.11);
@@ -1105,7 +1147,13 @@ article li {
     }
   }
   .sponsor {
-    margin-top: 2rem;
+    margin-top: calc(var(--mobile-section-gap) * 0.55);
+  }
+  #Sponsor .sponsor-club,
+  #Sponsor .sponsor-join,
+  #Sponsor .treebox,
+  #Sponsor .braille {
+    margin-top: calc(var(--mobile-section-gap) * 0.9);
   }
   .sponsor > div {
     background-position: left;
@@ -1674,6 +1722,14 @@ article li {
     aspect-ratio: 3/4.5;
     max-height: 100%;
   }
+  .events article:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .events article:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 
   #Pastevents {
     width: calc(100dvh / 832 * 1480);
@@ -1958,4 +2014,10 @@ article li {
 
 .spacer {
   flex: 1;
+}
+
+@media (max-aspect-ratio: 4/3) {
+  .awards {
+    display: none;
+  }
 }

@@ -2,6 +2,160 @@
 let imageData,
   imageIndex,
   pressed = false;
+
+const clampColorChannel = value =>
+  Math.max(0, Math.min(255, Math.round(value)));
+const brightenAccent = ({ r, g, b }) => {
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  if (luminance >= 120)
+    return {
+      r: clampColorChannel(r),
+      g: clampColorChannel(g),
+      b: clampColorChannel(b),
+    };
+  const boost = Math.min(1.65, 120 / Math.max(1, luminance));
+  return {
+    r: clampColorChannel(r * boost),
+    g: clampColorChannel(g * boost),
+    b: clampColorChannel(b * boost),
+  };
+};
+
+const waitForImageLoad = image =>
+  new Promise((resolve, reject) => {
+    if (image.complete) {
+      if (image.naturalWidth > 0) resolve();
+      else reject(new Error('Image failed to load'));
+      return;
+    }
+    image.addEventListener('load', resolve, { once: true });
+    image.addEventListener(
+      'error',
+      () => reject(new Error('Image failed to load')),
+      {
+        once: true,
+      },
+    );
+  });
+
+const getDominantColorFromImage = image => {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context || !image.naturalWidth || !image.naturalHeight) return null;
+
+  const maxSize = 48;
+  const scale = Math.min(
+    maxSize / image.naturalWidth,
+    maxSize / image.naturalHeight,
+    1,
+  );
+  canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  let pixels;
+  try {
+    pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  } catch (error) {
+    return null;
+  }
+
+  const buckets = new Map();
+  for (let i = 0; i < pixels.length; i += 4) {
+    const alpha = pixels[i + 3];
+    if (alpha < 140) continue;
+    const r = pixels[i];
+    const g = pixels[i + 1];
+    const b = pixels[i + 2];
+    const key = `${r >> 4}-${g >> 4}-${b >> 4}`;
+
+    if (!buckets.has(key)) buckets.set(key, { count: 0, r: 0, g: 0, b: 0 });
+    const bucket = buckets.get(key);
+    bucket.count += 1;
+    bucket.r += r;
+    bucket.g += g;
+    bucket.b += b;
+  }
+
+  if (buckets.size === 0) return null;
+
+  let dominant;
+  for (const bucket of buckets.values()) {
+    if (!dominant || bucket.count > dominant.count) dominant = bucket;
+  }
+  if (!dominant) return null;
+
+  return brightenAccent({
+    r: dominant.r / dominant.count,
+    g: dominant.g / dominant.count,
+    b: dominant.b / dominant.count,
+  });
+};
+
+const setEventAccentColor = (article, accent) => {
+  if (typeof accent === 'string') {
+    article.style.setProperty('--event-accent', accent);
+    return;
+  }
+  article.style.setProperty(
+    '--event-accent',
+    `rgb(${accent.r} ${accent.g} ${accent.b})`,
+  );
+  article.style.setProperty(
+    '--event-accent-glow',
+    `rgba(${accent.r}, ${accent.g}, ${accent.b}, 0.28)`,
+  );
+};
+
+const getCorsDominantColor = async src => {
+  const sampleImage = new Image();
+  sampleImage.crossOrigin = 'anonymous';
+  sampleImage.src = src;
+  await waitForImageLoad(sampleImage);
+  return getDominantColorFromImage(sampleImage);
+};
+
+const applyEventAccent = async (article, eventData = {}) => {
+  const backendAccent = [
+    eventData.accentColor,
+    eventData.accent,
+    eventData.color,
+    eventData.borderColor,
+  ].find(color => typeof color === 'string' && color.trim() !== '');
+  if (backendAccent) {
+    setEventAccentColor(article, backendAccent.trim());
+    return;
+  }
+
+  const image = article.querySelector('img');
+  if (!image) return;
+
+  try {
+    await waitForImageLoad(image);
+  } catch (error) {
+    return;
+  }
+
+  let accent = getDominantColorFromImage(image);
+  if (!accent) {
+    const source = image.currentSrc || image.src;
+    if (!source) return;
+    try {
+      accent = await getCorsDominantColor(source);
+    } catch (error) {
+      return;
+    }
+  }
+  if (accent) setEventAccentColor(article, accent);
+};
+
+const applyEventsAccentColors = events => {
+  const eventCards = document.querySelectorAll('.events article');
+  eventCards.forEach((article, index) => {
+    void applyEventAccent(article, events[index]);
+  });
+};
+
 // Define the fetch promises
 const fetchPromises = [
   fetch('https://raw.githubusercontent.com/SCAICT/website-data/main/home.json')
@@ -38,6 +192,7 @@ const fetchPromises = [
                     }</li></ul><h5>${event.description}</h5></div></article>`;
       }
       document.querySelector('.events').innerHTML = eventsHTML;
+      applyEventsAccentColors(events);
     })
     .catch(error => {
       console.error('Error:', error);
